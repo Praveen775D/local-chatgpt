@@ -5,14 +5,14 @@ import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import ChatInput from '../components/ChatInput';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export default function Home() {
   const [chatId, setChatId] = useState(null);
   const [messages, setMessages] = useState([]);
   const [chats, setChats] = useState([]);
   const [isStreaming, setIsStreaming] = useState(false);
   const controllerRef = useRef(null);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
   const fetchChats = async () => {
     const res = await fetch(`${API_URL}/api/chats`);
@@ -88,26 +88,31 @@ export default function Home() {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-        aiMessage += decoder.decode(value).replace(/^data:\s*/, '');
+
+        const chunk = decoder.decode(value).replace(/^data:\s*/, '');
+        aiMessage += chunk;
+
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
+
           if (last?.role === 'assistant') {
             updated[updated.length - 1] = { ...last, content: aiMessage };
           } else {
             updated.push({ role: 'assistant', content: aiMessage });
           }
+
           return updated;
         });
       }
-    } catch (err) {
-      if (err.name !== 'AbortError') console.error('Streaming error:', err);
+    } catch (error) {
+      if (error.name !== 'AbortError') console.error('Streaming error:', error);
     }
+
     setIsStreaming(false);
   };
 
   const handleRetry = (text) => handleSendMessage(text);
-
   const handleStop = () => {
     controllerRef.current?.abort();
     setIsStreaming(false);
