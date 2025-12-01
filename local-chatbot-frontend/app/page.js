@@ -5,8 +5,7 @@ import Sidebar from '../components/Sidebar';
 import ChatWindow from '../components/ChatWindow';
 import ChatInput from '../components/ChatInput';
 
-// Hardcoded deployed backend URL
-const API = 'https://local-chatgpt-wrkw.onrender.com';
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function Home() {
   const [chatId, setChatId] = useState(null);
@@ -16,20 +15,20 @@ export default function Home() {
   const controllerRef = useRef(null);
 
   const fetchChats = async () => {
-    const res = await fetch(`${API}/api/chats`);
+    const res = await fetch(`${API_URL}/api/chats`);
     const data = await res.json();
     setChats(data);
   };
 
   const handleSelectChat = async (id) => {
-    const res = await fetch(`${API}/api/chat/${id}`);
+    const res = await fetch(`${API_URL}/api/chat/${id}`);
     const data = await res.json();
     setChatId(id);
     setMessages(data);
   };
 
   const handleNewChat = async () => {
-    const res = await fetch(`${API}/api/chat`, {
+    const res = await fetch(`${API_URL}/api/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
     });
@@ -40,14 +39,14 @@ export default function Home() {
   };
 
   const handleDeleteChat = async (id) => {
-    await fetch(`${API}/api/chat/${id}`, { method: 'DELETE' });
+    await fetch(`${API_URL}/api/chat/${id}`, { method: 'DELETE' });
     setMessages([]);
     setChatId(null);
     fetchChats();
   };
 
   const handleRenameChat = async (id, newTitle) => {
-    await fetch(`${API}/api/chat/${id}/rename`, {
+    await fetch(`${API_URL}/api/chat/${id}/rename`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ title: newTitle }),
@@ -59,7 +58,7 @@ export default function Home() {
     let activeChatId = chatId;
 
     if (!chatId) {
-      const res = await fetch(`${API}/api/chat`, {
+      const res = await fetch(`${API_URL}/api/chat`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       });
@@ -70,14 +69,12 @@ export default function Home() {
       fetchChats();
     }
 
-    // Add user message
     setMessages((prev) => [...prev, { role: 'user', content: text }]);
     setIsStreaming(true);
-
     controllerRef.current = new AbortController();
 
     try {
-      const res = await fetch(`${API}/api/chat/${activeChatId}/message`, {
+      const res = await fetch(`${API_URL}/api/chat/${activeChatId}/message`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: text }),
@@ -91,35 +88,25 @@ export default function Home() {
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
-
-        const chunk = decoder.decode(value).replace(/^data:\s*/, '');
-        aiMessage += chunk;
-
+        aiMessage += decoder.decode(value).replace(/^data:\s*/, '');
         setMessages((prev) => {
           const updated = [...prev];
           const last = updated[updated.length - 1];
-
           if (last?.role === 'assistant') {
             updated[updated.length - 1] = { ...last, content: aiMessage };
           } else {
             updated.push({ role: 'assistant', content: aiMessage });
           }
-
           return updated;
         });
       }
-    } catch (error) {
-      if (error.name !== 'AbortError') {
-        console.error('Streaming error:', error);
-      }
+    } catch (err) {
+      if (err.name !== 'AbortError') console.error('Streaming error:', err);
     }
-
     setIsStreaming(false);
   };
 
-  const handleRetry = (text) => {
-    handleSendMessage(text);
-  };
+  const handleRetry = (text) => handleSendMessage(text);
 
   const handleStop = () => {
     controllerRef.current?.abort();
