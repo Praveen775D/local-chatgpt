@@ -27,7 +27,6 @@ export default function Sidebar({ chats, onNewChat, onSelectChat, onDeleteChat, 
               {chat.title || `Chat ${chat.id}`}
             </div>
 
-            {/* 3-dot menu button */}
             <div className="absolute top-2 right-2">
               <button onClick={() => setOpenMenuId(openMenuId === chat.id ? null : chat.id)}>
                 ⋮
