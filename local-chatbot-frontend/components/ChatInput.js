@@ -21,19 +21,18 @@ export default function ChatInput({ onSend, onStop, isStreaming }) {
     <div className="p-4 bg-gray-200">
       <textarea
         className="w-full border rounded p-2"
-        rows={2}
+        rows="2"
         placeholder="Type your message..."
         value={input}
         onChange={(e) => setInput(e.target.value)}
         onKeyDown={handleKeyDown}
-      />
+      ></textarea>
+
       <div className="flex items-center justify-between mt-2">
         <button
           onClick={() => {
-            if (input.trim()) {
-              onSend(input);
-              setInput("");
-            }
+            onSend(input);
+            setInput("");
           }}
           className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
