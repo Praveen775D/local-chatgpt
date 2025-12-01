@@ -1,5 +1,3 @@
-'use client';
-
 import { useState } from "react";
 
 export default function Sidebar({ chats, onNewChat, onSelectChat, onDeleteChat, onRenameChat }) {
@@ -8,7 +6,6 @@ export default function Sidebar({ chats, onNewChat, onSelectChat, onDeleteChat, 
   return (
     <div className="w-64 bg-gray-900 text-white p-4 flex flex-col overflow-y-auto">
       <h2 className="text-xl font-bold mb-4">Local ChatGPT</h2>
-
       <button
         onClick={onNewChat}
         className="bg-blue-600 hover:bg-blue-700 rounded px-4 py-2 mb-4"
@@ -20,10 +17,7 @@ export default function Sidebar({ chats, onNewChat, onSelectChat, onDeleteChat, 
         {chats.length === 0 && <p className="text-sm text-gray-400">No chats yet</p>}
         {chats.map((chat) => (
           <div key={chat.id} className="relative bg-gray-800 hover:bg-gray-700 rounded px-3 py-2 mb-2">
-            <div
-              onClick={() => onSelectChat(chat.id)}
-              className="text-sm cursor-pointer"
-            >
+            <div onClick={() => onSelectChat(chat.id)} className="text-sm cursor-pointer">
               {chat.title || `Chat ${chat.id}`}
             </div>
 
